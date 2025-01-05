@@ -54,13 +54,22 @@ ff.on('progress', (progress) => {
 const scale = 1 / 360;
 const fps = 60;
 
-const max = 12 * 6; // 6 hours
+// 6 hours of darkness was 1548 seconds.
+const min = 12.5 * 12; // 12.30
+const max = 14.5 * 12; // 14.30
+
 let n = 0;
 for (const file of files) {
+	if (n < min) {
+		n++;
+		continue;
+	}
+	if (n === min) {
+		console.log('Last file', file);
+	}
 	const filePath = path.join(downloadDir, file);
 	ff.addInput(filePath);
 	ff.addInputOptions([`-itsscale ${scale}`]);
-	n++;
 	if (n < max) continue;
 	console.log('Last file', file);
 	break;
