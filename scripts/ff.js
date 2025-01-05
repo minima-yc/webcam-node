@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import ffprobeStatic from 'ffprobe-static';
 import ffmpegStatic from 'ffmpeg-static';
 import ffmpeg from 'fluent-ffmpeg';
+import 'dotenv/config.js';
 
 const timer = performance.now();
 
