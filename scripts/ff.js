@@ -54,15 +54,10 @@ ff.on('progress', (progress) => {
 const scale = 1 / 360;
 const fps = 60;
 
-let n = 12;
-process.stdout.write('Adding files ');
 for (const file of files) {
 	const filePath = path.join(downloadDir, file);
 	ff.addInput(filePath);
 	ff.addInputOptions([`-itsscale ${scale}`]);
-	process.stdout.write('.');
-	n--;
-	if (n < 1) break;
 }
 /*
 	.screenshots({
