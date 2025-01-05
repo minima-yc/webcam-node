@@ -8,28 +8,37 @@ import ffmpeg from 'fluent-ffmpeg';
 
 const timer = performance.now();
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const downloadDir = path.join(__dirname, '..', 'files', 'download');
+// const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// const downloadDir = path.join(__dirname, '..', 'files', 'download');
+
+const downloadDir = process.env.DOWNLOAD_DIR;
 
 const files = await readdir(downloadDir);
-// for (const file of files)
-//  	console.log(file, path.join(downloadDir, file));
+files.sort();
 
+const title = process.env.TITLE;
+const outFile = process.env.OUTFILE;
 
 // Tell fluent-ffmpeg where it can find FFmpeg
-ffmpeg.setFfmpegPath(ffmpegStatic);
-ffmpeg.setFfprobePath(ffprobeStatic.path);
+if (process.env.FFMPEG_PATH) {
+	ffmpeg.setFfmpegPath(`${process.env.FFMPEG_PATH}/ffmpeg`);
+	ffmpeg.setFfprobePath(`${process.env.FFMPEG_PATH}/ffprobe`);
+} else {
+	ffmpeg.setFfmpegPath(ffmpegStatic);
+	ffmpeg.setFfprobePath(ffprobeStatic.path);
+}
 
 const ff = ffmpeg();
 
-const scale = 1 / 180;
+const scale = 1 / 360;
+const fps = 60;
 
 for (const file of files) {
-	const filePath = path.join(downloadDir, file)
+	const filePath = path.join(downloadDir, file);
 	ff.addInput(filePath);
 	ff.addInputOptions([`-itsscale ${scale}`]);
 }
-	/*
+/*
 	.screenshots({
 		timestamps: [0],
 		filename: '%b.jpg',
@@ -38,30 +47,40 @@ for (const file of files) {
 	})
 	*/
 
-	ff
-	.outputOptions('-metadata', 'title=Minima Yacht Club')
+ff
+	// ffmpeg -i input -c:v libx264 -preset slow -crf 22 -c:a copy output.mkv
+	.outputOptions('-crf', 28)
+	.outputOptions('-movflags', '+faststart')
+	.outputOptions('-preset', 'slow')
+	// .outputOptions('scale', '720:-1')
+	// .size('720x?')
+
+	.outputOptions('-metadata', 'title=')
 	.outputOptions('-metadata', 'composer=')
-	.withFPS(30)
+	.withFPS(fps)
 	.noAudio()
-	.mergeToFile('output2.mp4', './files/tmp')
-  // .saveToFile('output.mp4')
+	.mergeToFile(outFile, '.')
+	// .saveToFile('output.mp4')
 
 	// Log the percentage of work completed
-	.on("progress", (progress) => {
-		if (progress.percent) {
-			console.log(`Processing: ${(progress.percent)}% done`);
-		}
+	.on('progress', (progress) => {
+		console.log(
+			progress.frames,
+			((progress.frames / (86400 * fps * scale)) * 100).toFixed(1),
+			'%',
+		);
+		// console.log(`Processing: ${(progress.timemark)} hh:mm:ss.ff`);
 	})
 
 	// The callback that is run when FFmpeg is finished
-	.on("end", () => {
-		console.log("FFmpeg has finished.");
+	.on('end', () => {
+		console.log('FFmpeg has finished.');
 		console.log(performance.now() - timer);
 	})
 
 	// The callback that is run when FFmpeg encountered an error
-	.on("error", (error) => {
-		console.log("An error occurred: " + error.message);
+	.on('error', (error) => {
+		console.log('An error occurred: ' + error.message);
 	});
 
 /*
