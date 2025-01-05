@@ -31,13 +31,38 @@ if (process.env.FFMPEG_PATH) {
 
 const ff = ffmpeg();
 
+ff.on('progress', (progress) => {
+	console.log(
+		progress.frames,
+		((progress.frames / (86400 * fps * scale)) * 100).toFixed(1),
+		'%',
+	);
+	// console.log(`Processing: ${(progress.timemark)} hh:mm:ss.ff`);
+})
+
+	// The callback that is run when FFmpeg is finished
+	.on('end', () => {
+		console.log('FFmpeg has finished.');
+		console.log(((performance.now() - timer) / 1000).toFixed(0), 'seconds');
+	})
+
+	// The callback that is run when FFmpeg encountered an error
+	.on('error', (error) => {
+		console.log('An error occurred: ' + error.message);
+	});
+
 const scale = 1 / 360;
 const fps = 60;
 
+let n = 12;
+process.stdout.write('Adding files ');
 for (const file of files) {
 	const filePath = path.join(downloadDir, file);
 	ff.addInput(filePath);
 	ff.addInputOptions([`-itsscale ${scale}`]);
+	process.stdout.write('.');
+	n--;
+	if (n < 1) break;
 }
 /*
 	.screenshots({
@@ -47,6 +72,7 @@ for (const file of files) {
 		// size: '320x240'
 	})
 	*/
+// Log the percentage of work completed
 
 ff
 	// ffmpeg -i input -c:v libx264 -preset slow -crf 22 -c:a copy output.mkv
@@ -60,29 +86,8 @@ ff
 	.outputOptions('-metadata', 'composer=')
 	.withFPS(fps)
 	.noAudio()
-	.mergeToFile(outFile, '.')
-	// .saveToFile('output.mp4')
-
-	// Log the percentage of work completed
-	.on('progress', (progress) => {
-		console.log(
-			progress.frames,
-			((progress.frames / (86400 * fps * scale)) * 100).toFixed(1),
-			'%',
-		);
-		// console.log(`Processing: ${(progress.timemark)} hh:mm:ss.ff`);
-	})
-
-	// The callback that is run when FFmpeg is finished
-	.on('end', () => {
-		console.log('FFmpeg has finished.');
-		console.log(performance.now() - timer);
-	})
-
-	// The callback that is run when FFmpeg encountered an error
-	.on('error', (error) => {
-		console.log('An error occurred: ' + error.message);
-	});
+	.mergeToFile(outFile, '.');
+// .saveToFile('output.mp4')
 
 /*
 
