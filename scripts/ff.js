@@ -54,11 +54,17 @@ ff.on('progress', (progress) => {
 const scale = 1 / 360;
 const fps = 60;
 
+const max = 12 * 6; // 6 hours
+let n = 0;
 for (const file of files) {
 	const filePath = path.join(downloadDir, file);
 	ff.addInput(filePath);
 	ff.addInputOptions([`-itsscale ${scale}`]);
+	n++;
+	if (n < max) continue;
+	console.log('Last file', file);
 }
+
 /*
 	.screenshots({
 		timestamps: [0],
