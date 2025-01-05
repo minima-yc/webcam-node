@@ -63,6 +63,7 @@ for (const file of files) {
 	n++;
 	if (n < max) continue;
 	console.log('Last file', file);
+	break;
 }
 
 /*
