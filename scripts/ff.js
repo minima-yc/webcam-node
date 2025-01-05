@@ -65,11 +65,12 @@ for (const file of files) {
 		continue;
 	}
 	if (n === min) {
-		console.log('Last file', file);
+		console.log('First file', file);
 	}
 	const filePath = path.join(downloadDir, file);
 	ff.addInput(filePath);
 	ff.addInputOptions([`-itsscale ${scale}`]);
+	n++;
 	if (n < max) continue;
 	console.log('Last file', file);
 	break;
